@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Products – Pretty Store Admin</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><span class="brand-icon">💕</span><span class="brand-text">Pretty Store</span></div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item"><span>📊</span> Dashboard</a>
+      <a href="products.html" class="nav-item active"><span>📦</span> Products</a>
+      <a href="orders.html" class="nav-item"><span>🛒</span> Orders</a>
+      <a href="users.html" class="nav-item"><span>👥</span> Users</a>
+      <a href="settings.html" class="nav-item"><span>⚙️</span> Settings</a>
+    </nav>
+    <button class="sidebar-logout" id="logout-btn">🚪 Logout</button>
+  </aside>
+  <main class="admin-main">
+    <header class="admin-header">
+      <button class="menu-toggle" id="menu-toggle">☰</button>
+      <h1 class="page-title">Products</h1>
+      <button class="btn btn-primary" id="add-product-btn">+ Add Product</button>
+    </header>
+    <div class="admin-content">
+      <!-- Filter -->
+      <div class="filter-bar">
+        <input type="text" id="search-input" placeholder="🔍 Search products..." />
+        <select id="category-filter">
+          <option value="">All Categories</option>
+          <option>Women</option><option>Men</option><option>Kids</option>
+          <option>Home &amp; Kitchen</option><option>Beauty</option>
+          <option>Electronics</option><option>Sports</option>
+          <option>Books</option><option>Toys</option><option>Grocery</option>
+        </select>
+        <button class="btn btn-primary btn-sm" id="search-btn">Search</button>
+      </div>
+
+      <!-- Table -->
+      <div class="card">
+        <div id="products-container">
+          <div class="flex-center" style="padding:40px"><div class="spinner"></div></div>
+        </div>
+        <div id="products-pagination" class="pagination"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Add/Edit Product Modal -->
+<div class="modal-overlay" id="product-modal">
+  <div class="modal" style="width:min(95vw,640px)">
+    <div class="modal-header">
+      <h3 id="modal-title">Add Product</h3>
+      <button class="modal-close" id="close-modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="product-form" enctype="multipart/form-data">
+        <input type="hidden" id="product-id" />
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Product Title *</label>
+            <input type="text" name="title" class="form-control" required placeholder="e.g. Floral Summer Dress" />
+          </div>
+          <div class="form-group full">
+            <label>Description *</label>
+            <textarea name="description" class="form-control" rows="3" required placeholder="Describe the product..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Sale Price (₹) *</label>
+            <input type="number" name="price" class="form-control" required min="0" placeholder="499" />
+          </div>
+          <div class="form-group">
+            <label>Original Price (₹)</label>
+            <input type="number" name="originalPrice" class="form-control" min="0" placeholder="999" />
+          </div>
+          <div class="form-group">
+            <label>Category *</label>
+            <select name="category" class="form-control" required>
+              <option value="">Select category</option>
+              <option>Women</option><option>Men</option><option>Kids</option>
+              <option>Home &amp; Kitchen</option><option>Beauty</option>
+              <option>Electronics</option><option>Sports</option>
+              <option>Books</option><option>Toys</option><option>Grocery</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Stock Quantity *</label>
+            <input type="number" name="stock" class="form-control" required min="0" placeholder="50" />
+          </div>
+          <div class="form-group">
+            <label>Sizes (comma separated)</label>
+            <input type="text" name="sizes" class="form-control" placeholder="S, M, L, XL" />
+          </div>
+          <div class="form-group">
+            <label>Colors (comma separated)</label>
+            <input type="text" name="colors" class="form-control" placeholder="Red, Blue, Green" />
+          </div>
+          <div class="form-group full">
+            <label>Tags (comma separated)</label>
+            <input type="text" name="tags" class="form-control" placeholder="summer, dress, floral" />
+          </div>
+          <div class="form-group full">
+            <label>Product Images (max 5)</label>
+            <div class="img-upload-area" id="upload-area">
+              <div style="font-size:36px">📷</div>
+              <p>Click to upload images or drag & drop</p>
+              <p style="font-size:12px">PNG, JPG, WEBP up to 5MB each</p>
+            </div>
+            <input type="file" name="images" id="image-input" accept="image/*" multiple style="display:none" />
+            <div class="image-preview-wrap" id="image-previews"></div>
+          </div>
+        </div>
+        <div class="modal-footer" style="padding:0; border:none; margin-top:16px;">
+          <button type="button" class="btn btn-outline" id="cancel-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="save-product-btn">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal" style="width:min(90vw,380px)">
+    <div class="modal-header"><h3>Delete Product</h3><button class="modal-close" id="close-delete">✕</button></div>
+    <div class="modal-body">
+      <p>Are you sure you want to delete <strong id="delete-product-name"></strong>? This action cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" id="cancel-delete">Cancel</button>
+      <button class="btn btn-primary" id="confirm-delete" style="background:#f44336">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script src="admin.js"></script>
+<script>
+  requireAdminAuth();
+
+  let currentPage = 1;
+  let deleteProductId = null;
+
+  // Load products
+  async function loadProducts(page = 1) {
+    currentPage = page;
+    const search = document.getElementById('search-input').value;
+    const category = document.getElementById('category-filter').value;
+    try {
+      document.getElementById('products-container').innerHTML = '<div class="flex-center" style="padding:40px"><div class="spinner"></div></div>';
+      const params = new URLSearchParams({ page, limit: 15 });
+      if (search) params.set('search', search);
+      if (category) params.set('category', category);
+      const data = await adminApi.get(`/products?${params}`);
+      renderTable(data.products);
+      renderPagination(data.pages, page);
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  function renderTable(products) {
+    if (!products.length) {
+      document.getElementById('products-container').innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><h3>No products found</h3><p>Add your first product</p></div>';
+      return;
+    }
+    document.getElementById('products-container').innerHTML = `
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr>
+            <th>Image</th><th>Title</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody>
+            ${products.map(p => `
+              <tr>
+                <td><img class="product-thumb" src="${p.images[0]?.url || ''}" onerror="imgFallback(this)" /></td>
+                <td><strong>${p.title}</strong></td>
+                <td><span class="badge badge-purple">${p.category}</span></td>
+                <td class="font-bold">${formatPrice(p.price)}</td>
+                <td><span class="badge ${p.stock > 0 ? 'badge-success' : 'badge-error'}">${p.stock}</span></td>
+                <td><span class="badge ${p.isActive ? 'badge-success' : 'badge-error'}">${p.isActive ? 'Active' : 'Inactive'}</span></td>
+                <td>
+                  <div style="display:flex;gap:6px">
+                    <button class="action-btn edit" onclick="openEdit('${p._id}')">✏️ Edit</button>
+                    <button class="action-btn delete" onclick="openDelete('${p._id}','${p.title.replace(/'/g,"\\'")}')">🗑️</button>
+                  </div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function renderPagination(pages, current) {
+    const el = document.getElementById('products-pagination');
+    if (pages <= 1) { el.innerHTML = ''; return; }
+    let html = '';
+    for (let i = 1; i <= pages; i++) {
+      html += `<button class="page-btn ${i === current ? 'active' : ''}" onclick="loadProducts(${i})">${i}</button>`;
+    }
+    el.innerHTML = html;
+  }
+
+  // Modal
+  const modal = document.getElementById('product-modal');
+  const form  = document.getElementById('product-form');
+
+  document.getElementById('add-product-btn').addEventListener('click', () => {
+    document.getElementById('modal-title').textContent = 'Add Product';
+    form.reset();
+    document.getElementById('product-id').value = '';
+    document.getElementById('image-previews').innerHTML = '';
+    openModal('product-modal');
+  });
+
+  function openEdit(id) {
+    document.getElementById('modal-title').textContent = 'Edit Product';
+    loadProductForEdit(id);
+    openModal('product-modal');
+  }
+
+  async function loadProductForEdit(id) {
+    try {
+      const data = await adminApi.get(`/products/${id}`);
+      const p = data.product;
+      form.reset();
+      document.getElementById('product-id').value = p._id;
+      form.title.value = p.title;
+      form.description.value = p.description;
+      form.price.value = p.price;
+      form.originalPrice.value = p.originalPrice || '';
+      form.category.value = p.category;
+      form.stock.value = p.stock;
+      form.sizes.value = p.sizes?.join(', ') || '';
+      form.colors.value = p.colors?.join(', ') || '';
+      form.tags.value = p.tags?.join(', ') || '';
+      document.getElementById('image-previews').innerHTML = p.images.map(img =>
+        `<img src="${img.url}" class="image-preview" onerror="imgFallback(this)" />`
+      ).join('');
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  // Image preview
+  document.getElementById('upload-area').addEventListener('click', () => document.getElementById('image-input').click());
+  document.getElementById('image-input').addEventListener('change', e => {
+    const previews = document.getElementById('image-previews');
+    previews.innerHTML = '';
+    [...e.target.files].forEach(file => {
+      const url = URL.createObjectURL(file);
+      const img = document.createElement('img');
+      img.src = url; img.className = 'image-preview';
+      previews.appendChild(img);
+    });
+  });
+
+  // Save product
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const id = document.getElementById('product-id').value;
+    const btn = document.getElementById('save-product-btn');
+    btn.disabled = true; btn.innerHTML = '<div class="spinner spinner-sm"></div> Saving...';
+
+    const fd = new FormData(form);
+    const imageInput = document.getElementById('image-input');
+    if (imageInput.files.length) {
+      [...imageInput.files].forEach(f => fd.append('images', f));
+    }
+
+    try {
+      if (id) {
+        await adminApi.putForm(`/products/${id}`, fd);
+        showToast('Product updated!', 'success');
+      } else {
+        await adminApi.postForm('/products', fd);
+        showToast('Product added!', 'success');
+      }
+      closeModal('product-modal');
+      loadProducts(currentPage);
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Save Product';
+    }
+  });
+
+  // Delete
+  function openDelete(id, name) {
+    deleteProductId = id;
+    document.getElementById('delete-product-name').textContent = name;
+    openModal('delete-modal');
+  }
+
+  document.getElementById('confirm-delete').addEventListener('click', async () => {
+    try {
+      await adminApi.delete(`/products/${deleteProductId}`);
+      showToast('Product deleted', 'success');
+      closeModal('delete-modal');
+      loadProducts(currentPage);
+    } catch (err) { showToast(err.message, 'error'); }
+  });
+
+  // Modal helpers
+  function openModal(id)  { document.getElementById(id).classList.add('active'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+  document.getElementById('close-modal').addEventListener('click', () => closeModal('product-modal'));
+  document.getElementById('cancel-modal').addEventListener('click', () => closeModal('product-modal'));
+  document.getElementById('close-delete').addEventListener('click', () => closeModal('delete-modal'));
+  document.getElementById('cancel-delete').addEventListener('click', () => closeModal('delete-modal'));
+  document.getElementById('search-btn').addEventListener('click', () => loadProducts(1));
+  document.getElementById('search-input').addEventListener('keydown', e => { if (e.key === 'Enter') loadProducts(1); });
+  document.getElementById('category-filter').addEventListener('change', () => loadProducts(1));
+
+  loadProducts();
+</script>
+</body>
+</html>

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pretty Store – Shop Online</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="user.css" />
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="top-bar">🚚 Free Delivery on orders above ₹499 &nbsp;|&nbsp; 🔄 Easy Returns &nbsp;|&nbsp; 💳 Secure Payments</div>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-inner">
+    <a href="index.html" class="header-logo">💕 Pretty Store</a>
+    <div class="header-search">
+      <input type="text" id="search-input" placeholder="Search for clothes, accessories..." />
+      <button id="search-btn">🔍</button>
+    </div>
+    <div class="header-actions">
+      <button class="header-btn" id="profile-btn" onclick="goProfile()">
+        <span class="icon">👤</span><span>Profile</span>
+      </button>
+      <button class="header-btn" onclick="goWishlist()">
+        <span class="icon">❤️</span><span>Wishlist</span>
+      </button>
+      <button class="header-btn" onclick="location.href='cart.html'">
+        <span class="icon">🛒</span><span>Cart</span>
+        <span class="cart-badge cart-count" style="display:none">0</span>
+      </button>
+    </div>
+  </div>
+  <!-- Category Nav -->
+  <div class="category-nav">
+    <div class="category-nav-inner" id="category-nav">
+      <button class="cat-btn active" data-cat="">🏠 All</button>
+      <button class="cat-btn" data-cat="Women">👗 Women</button>
+      <button class="cat-btn" data-cat="Men">👔 Men</button>
+      <button class="cat-btn" data-cat="Kids">🧸 Kids</button>
+      <button class="cat-btn" data-cat="Home & Kitchen">🏠 Home</button>
+      <button class="cat-btn" data-cat="Beauty">💄 Beauty</button>
+      <button class="cat-btn" data-cat="Electronics">📱 Electronics</button>
+      <button class="cat-btn" data-cat="Sports">⚽ Sports</button>
+      <button class="cat-btn" data-cat="Books">📚 Books</button>
+      <button class="cat-btn" data-cat="Toys">🎮 Toys</button>
+      <button class="cat-btn" data-cat="Grocery">🛒 Grocery</button>
+    </div>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-inner">
+    <h1>Shop the <span>Latest Trends</span><br>at Amazing Prices</h1>
+    <p>Discover thousands of fashion, beauty & lifestyle products</p>
+    <div class="hero-badges">
+      <span class="hero-badge">🚚 Free Delivery</span>
+      <span class="hero-badge">🔄 Easy Returns</span>
+      <span class="hero-badge">🔒 Secure Pay</span>
+      <span class="hero-badge">⭐ Trusted Brand</span>
+    </div>
+  </div>
+</section>
+
+<!-- Offers -->
+<div class="page-container">
+  <div class="offers-strip">
+    <span class="offer-chip">🔥 Upto 80% OFF</span>
+    <span class="offer-chip">✨ New Arrivals</span>
+    <span class="offer-chip">💝 Women's Special</span>
+    <span class="offer-chip">🎁 Gift Ideas</span>
+    <span class="offer-chip">⚡ Flash Sale</span>
+    <span class="offer-chip">🌟 Top Rated</span>
+  </div>
+</div>
+
+<!-- Products Section -->
+<main class="page-container page-bottom-padding">
+  <div class="products-toolbar">
+    <span class="count" id="products-count">Loading...</span>
+    <select class="sort-select" id="sort-select">
+      <option value="newest">Newest First</option>
+      <option value="price-asc">Price: Low to High</option>
+      <option value="price-desc">Price: High to Low</option>
+      <option value="rating">Top Rated</option>
+      <option value="popularity">Popularity</option>
+    </select>
+  </div>
+
+  <div class="grid-products" id="products-grid">
+    <!-- Skeleton cards shown until JS loads -->
+    <div class="product-card"><div class="skeleton" style="padding-top:110%;border-radius:0"></div><div style="padding:12px"><div class="skeleton" style="height:14px;margin-bottom:6px;border-radius:4px"></div><div class="skeleton" style="height:14px;width:70%;margin-bottom:8px;border-radius:4px"></div><div class="skeleton" style="height:18px;width:40%;border-radius:4px"></div></div></div>
+    <div class="product-card"><div class="skeleton" style="padding-top:110%;border-radius:0"></div><div style="padding:12px"><div class="skeleton" style="height:14px;margin-bottom:6px;border-radius:4px"></div><div class="skeleton" style="height:14px;width:70%;margin-bottom:8px;border-radius:4px"></div><div class="skeleton" style="height:18px;width:40%;border-radius:4px"></div></div></div>
+    <div class="product-card"><div class="skeleton" style="padding-top:110%;border-radius:0"></div><div style="padding:12px"><div class="skeleton" style="height:14px;margin-bottom:6px;border-radius:4px"></div><div class="skeleton" style="height:14px;width:70%;margin-bottom:8px;border-radius:4px"></div><div class="skeleton" style="height:18px;width:40%;border-radius:4px"></div></div></div>
+    <div class="product-card"><div class="skeleton" style="padding-top:110%;border-radius:0"></div><div style="padding:12px"><div class="skeleton" style="height:14px;margin-bottom:6px;border-radius:4px"></div><div class="skeleton" style="height:14px;width:70%;margin-bottom:8px;border-radius:4px"></div><div class="skeleton" style="height:18px;width:40%;border-radius:4px"></div></div></div>
+    <div class="product-card"><div class="skeleton" style="padding-top:110%;border-radius:0"></div><div style="padding:12px"><div class="skeleton" style="height:14px;margin-bottom:6px;border-radius:4px"></div><div class="skeleton" style="height:14px;width:70%;margin-bottom:8px;border-radius:4px"></div><div class="skeleton" style="height:18px;width:40%;border-radius:4px"></div></div></div>
+    <div class="product-card"><div class="skeleton" style="padding-top:110%;border-radius:0"></div><div style="padding:12px"><div class="skeleton" style="height:14px;margin-bottom:6px;border-radius:4px"></div><div class="skeleton" style="height:14px;width:70%;margin-bottom:8px;border-radius:4px"></div><div class="skeleton" style="height:18px;width:40%;border-radius:4px"></div></div></div>
+    <div class="product-card"><div class="skeleton" style="padding-top:110%;border-radius:0"></div><div style="padding:12px"><div class="skeleton" style="height:14px;margin-bottom:6px;border-radius:4px"></div><div class="skeleton" style="height:14px;width:70%;margin-bottom:8px;border-radius:4px"></div><div class="skeleton" style="height:18px;width:40%;border-radius:4px"></div></div></div>
+    <div class="product-card"><div class="skeleton" style="padding-top:110%;border-radius:0"></div><div style="padding:12px"><div class="skeleton" style="height:14px;margin-bottom:6px;border-radius:4px"></div><div class="skeleton" style="height:14px;width:70%;margin-bottom:8px;border-radius:4px"></div><div class="skeleton" style="height:18px;width:40%;border-radius:4px"></div></div></div>
+  </div>
+
+  <div id="products-pagination" class="pagination"></div>
+</main>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <a href="index.html" class="active">
+    <span class="bnav-icon">🏠</span>Home
+  </a>
+  <a href="index.html">
+    <span class="bnav-icon">🔍</span>Explore
+  </a>
+  <a href="wishlist.html">
+    <span class="bnav-icon">❤️</span>Wishlist
+  </a>
+  <a href="cart.html" style="position:relative">
+    <span class="bnav-icon">🛒</span>Cart
+    <span class="cart-badge cart-count" style="top:0;right:20%;display:none">0</span>
+  </a>
+  <a href="profile.html">
+    <span class="bnav-icon">👤</span>Profile
+  </a>
+</nav>
+
+<div id="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script>
+  let currentPage = 1;
+  let currentCategory = '';
+  let currentSort = 'newest';
+  let wishlistIds = new Set();
+
+  // Init
+  async function init() {
+    refreshCartCount();
+    if (auth.isLoggedIn()) loadWishlist();
+    loadProducts();
+  }
+
+  async function loadWishlist() {
+    try {
+      const data = await api.get('/wishlist');
+      wishlistIds = new Set(data.products.map(p => p._id));
+    } catch {}
+  }
+
+  async function loadProducts(page = 1) {
+    currentPage = page;
+    const search = document.getElementById('search-input').value.trim();
+    const params = new URLSearchParams({ page, limit: 20, sort: currentSort });
+    if (search) params.set('search', search);
+    if (currentCategory) params.set('category', currentCategory);
+
+    try {
+      document.getElementById('products-count').textContent = 'Loading...';
+      const data = await api.get(`/products?${params}`);
+      renderProducts(data.products);
+      document.getElementById('products-count').textContent = `${data.total} Products`;
+      renderPagination(data.pages, page);
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  function renderProducts(products) {
+    const grid = document.getElementById('products-grid');
+    if (!products.length) {
+      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🔍</div><h3>No products found</h3><p>Try different filters</p></div>';
+      return;
+    }
+    grid.innerHTML = products.map(p => {
+      const disc = getDiscount(p.originalPrice, p.price);
+      const isWished = wishlistIds.has(p._id);
+      return `
+        <div class="product-card" onclick="location.href='product.html?id=${p._id}'">
+          <div class="product-card-img-wrap">
+            <img src="${p.images[0]?.url || ''}" alt="${p.title}" onerror="imgFallback(this)" loading="lazy" />
+            ${disc ? `<span class="product-card-discount">${disc}% OFF</span>` : ''}
+            <button class="product-card-wishlist ${isWished ? 'active' : ''}"
+              onclick="event.stopPropagation();toggleWishlist('${p._id}', this)">
+              ${isWished ? '❤️' : '🤍'}
+            </button>
+          </div>
+          <div class="product-card-info">
+            <div class="product-card-title">${p.title}</div>
+            <div class="product-card-price">
+              <span class="curr">${formatPrice(p.price)}</span>
+              ${p.originalPrice ? `<span class="orig">${formatPrice(p.originalPrice)}</span>` : ''}
+              ${disc ? `<span class="disc">${disc}% off</span>` : ''}
+            </div>
+            ${p.rating.count > 0 ? `<div class="product-card-rating">${starsHTML(p.rating.average, p.rating.count)}</div>` : ''}
+            <button class="product-card-addcart" onclick="event.stopPropagation();addToCart('${p._id}')">
+              🛒 Add to Cart
+            </button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function renderPagination(pages, current) {
+    const el = document.getElementById('products-pagination');
+    if (pages <= 1) { el.innerHTML = ''; return; }
+    let html = '';
+    if (current > 1) html += `<button class="page-btn" onclick="loadProducts(${current-1})">‹</button>`;
+    for (let i = Math.max(1, current-2); i <= Math.min(pages, current+2); i++) {
+      html += `<button class="page-btn ${i===current?'active':''}" onclick="loadProducts(${i})">${i}</button>`;
+    }
+    if (current < pages) html += `<button class="page-btn" onclick="loadProducts(${current+1})">›</button>`;
+    el.innerHTML = html;
+  }
+
+  // Category
+  document.getElementById('category-nav').addEventListener('click', e => {
+    const btn = e.target.closest('.cat-btn');
+    if (!btn) return;
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentCategory = btn.dataset.cat;
+    loadProducts(1);
+  });
+
+  // Sort
+  document.getElementById('sort-select').addEventListener('change', e => {
+    currentSort = e.target.value;
+    loadProducts(1);
+  });
+
+  // Search
+  const doSearch = debounce(() => loadProducts(1), 400);
+  document.getElementById('search-input').addEventListener('input', doSearch);
+  document.getElementById('search-btn').addEventListener('click', () => loadProducts(1));
+
+  // Wishlist toggle
+  async function toggleWishlist(productId, btn) {
+    if (!auth.isLoggedIn()) { window.location.href = 'login.html?redirect=index.html'; return; }
+    try {
+      const data = await api.post(`/wishlist/toggle/${productId}`);
+      if (data.added) { wishlistIds.add(productId); btn.innerHTML = '❤️'; btn.classList.add('active'); }
+      else { wishlistIds.delete(productId); btn.innerHTML = '🤍'; btn.classList.remove('active'); }
+      showToast(data.message, 'success');
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  // Add to cart
+  async function addToCart(productId) {
+    if (!auth.isLoggedIn()) { window.location.href = 'login.html?redirect=index.html'; return; }
+    try {
+      await api.post('/cart/add', { productId, quantity: 1 });
+      showToast('Added to cart! 🛒', 'success');
+      refreshCartCount();
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  function goProfile() {
+    if (!auth.isLoggedIn()) window.location.href = 'login.html';
+    else window.location.href = 'profile.html';
+  }
+
+  function goWishlist() {
+    if (!auth.isLoggedIn()) window.location.href = 'login.html?redirect=wishlist.html';
+    else window.location.href = 'wishlist.html';
+  }
+
+  init();
+</script>
+</body>
+</html>

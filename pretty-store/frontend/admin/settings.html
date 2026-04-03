@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings – Pretty Store Admin</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><span class="brand-icon">💕</span><span class="brand-text">Pretty Store</span></div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item"><span>📊</span> Dashboard</a>
+      <a href="products.html" class="nav-item"><span>📦</span> Products</a>
+      <a href="orders.html" class="nav-item"><span>🛒</span> Orders</a>
+      <a href="users.html" class="nav-item"><span>👥</span> Users</a>
+      <a href="settings.html" class="nav-item active"><span>⚙️</span> Settings</a>
+    </nav>
+    <button class="sidebar-logout" id="logout-btn">🚪 Logout</button>
+  </aside>
+  <main class="admin-main">
+    <header class="admin-header">
+      <button class="menu-toggle" id="menu-toggle">☰</button>
+      <h1 class="page-title">Store Settings</h1>
+    </header>
+    <div class="admin-content" style="max-width:700px">
+      <!-- Payment Methods -->
+      <div class="card" style="padding:28px;margin-bottom:24px">
+        <h2 style="font-family:var(--font-heading);margin-bottom:6px">💳 Payment Methods</h2>
+        <p class="text-muted" style="font-size:14px;margin-bottom:24px">Enable or disable payment options available to customers at checkout.</p>
+
+        <div id="payment-methods-list"><div class="flex-center" style="padding:30px"><div class="spinner"></div></div></div>
+
+        <button class="btn btn-primary btn-lg" id="save-methods-btn" style="margin-top:20px">
+          💾 Save Changes
+        </button>
+      </div>
+
+      <!-- Store Info (static) -->
+      <div class="card" style="padding:28px">
+        <h2 style="font-family:var(--font-heading);margin-bottom:6px">🏪 Store Information</h2>
+        <p class="text-muted" style="font-size:14px;margin-bottom:20px">Basic store details (update in .env for backend changes)</p>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Store Name</label>
+            <input type="text" class="form-control" value="Pretty Store" readonly />
+          </div>
+          <div class="form-group">
+            <label>Admin Email</label>
+            <input type="email" class="form-control" id="admin-email-display" readonly />
+          </div>
+        </div>
+        <p class="text-muted" style="font-size:12px;margin-top:8px">⚙️ To change credentials, update the <code>.env</code> file and restart the server.</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script src="admin.js"></script>
+<script>
+  requireAdminAuth();
+
+  const paymentIcons = { UPI: '📱', COD: '💵', Card: '💳', NetBanking: '🏦' };
+  const paymentDesc = {
+    UPI: 'Google Pay, PhonePe, Paytm, BHIM UPI',
+    COD: 'Pay cash on delivery',
+    Card: 'Visa, Mastercard, RuPay debit/credit cards',
+    NetBanking: 'All major Indian banks'
+  };
+
+  let currentMethods = {};
+
+  async function loadPaymentMethods() {
+    try {
+      const data = await adminApi.get('/admin/payment-methods');
+      currentMethods = data.methods;
+      renderMethods(data.methods);
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  function renderMethods(methods) {
+    document.getElementById('payment-methods-list').innerHTML = Object.entries(methods).map(([key, enabled]) => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;border:2px solid ${enabled ? 'var(--pink)' : 'var(--border)'};border-radius:var(--radius);margin-bottom:12px;background:${enabled ? 'var(--pink-light)' : '#fff'};transition:all 0.2s">
+        <div style="display:flex;align-items:center;gap:14px">
+          <span style="font-size:28px">${paymentIcons[key] || '💰'}</span>
+          <div>
+            <p class="font-bold" style="font-size:16px">${key}</p>
+            <p class="text-muted" style="font-size:13px">${paymentDesc[key] || ''}</p>
+          </div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" data-method="${key}" ${enabled ? 'checked' : ''} onchange="toggleMethod('${key}', this.checked)" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    `).join('');
+  }
+
+  function toggleMethod(key, value) {
+    currentMethods[key] = value;
+    renderMethods(currentMethods);
+  }
+
+  document.getElementById('save-methods-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('save-methods-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner spinner-sm"></div> Saving...';
+    try {
+      await adminApi.put('/admin/payment-methods', { methods: currentMethods });
+      showToast('Payment methods saved!', 'success');
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '💾 Save Changes';
+    }
+  });
+
+  const admin = adminAuth.getAdmin();
+  if (admin) document.getElementById('admin-email-display').value = admin.email || '';
+
+  loadPaymentMethods();
+</script>
+</body>
+</html>

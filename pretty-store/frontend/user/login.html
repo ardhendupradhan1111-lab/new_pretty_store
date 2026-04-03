@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login – Pretty Store</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="user.css" />
+</head>
+<body>
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <h1>💕 Pretty Store</h1>
+      <p>Shop the best fashion & lifestyle</p>
+    </div>
+
+    <!-- Step 1: Phone Entry -->
+    <div id="step-phone" class="step active">
+      <h2 style="font-family:var(--font-heading);font-size:20px;margin-bottom:6px">Welcome! 👋</h2>
+      <p class="text-muted" style="font-size:14px;margin-bottom:20px">Enter your mobile number to continue</p>
+      <div class="form-group">
+        <label>Mobile Number</label>
+        <div class="phone-input-wrap">
+          <span class="phone-prefix">🇮🇳 +91</span>
+          <input type="tel" id="phone-input" placeholder="9876543210" maxlength="10" inputmode="numeric" />
+        </div>
+        <span class="form-error" id="phone-error"></span>
+      </div>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px">
+        By continuing, you agree to our <a href="#" style="color:var(--pink)">Terms of Service</a> and <a href="#" style="color:var(--pink)">Privacy Policy</a>
+      </p>
+      <button class="btn btn-primary btn-full btn-lg" id="send-otp-btn">Get OTP</button>
+    </div>
+
+    <!-- Step 2: OTP Verify -->
+    <div id="step-otp" class="step" style="display:none">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-size:48px;margin-bottom:10px">📱</div>
+        <h2 style="font-family:var(--font-heading);font-size:20px;margin-bottom:6px">Verify OTP</h2>
+        <p class="text-muted" style="font-size:14px">Sent to <strong id="phone-display"></strong></p>
+        <a id="change-phone" style="font-size:13px;color:var(--pink);font-weight:700;cursor:pointer">Change number</a>
+      </div>
+      <div id="otp-box" class="otp-inputs" style="margin-bottom:8px">
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric" />
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric" />
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric" />
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric" />
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric" />
+        <input type="text" class="otp-input" maxlength="1" inputmode="numeric" />
+      </div>
+      <p class="timer" id="otp-timer-text" style="text-align:center;font-size:13px;color:var(--text-muted);margin-bottom:16px">
+        Expires in <span id="otp-countdown" style="color:var(--pink);font-weight:700">10:00</span>
+      </p>
+      <button class="btn btn-primary btn-full btn-lg" id="verify-btn">Verify & Login</button>
+      <p style="text-align:center;margin-top:14px;font-size:13px;color:var(--text-muted)">
+        Didn't receive? <a id="resend-btn" style="color:var(--pink);font-weight:700;cursor:pointer">Resend OTP</a>
+      </p>
+    </div>
+
+    <!-- Step 3: Profile Setup (new users) -->
+    <div id="step-profile" class="step" style="display:none">
+      <h2 style="font-family:var(--font-heading);font-size:20px;margin-bottom:6px">Almost done! 🎉</h2>
+      <p class="text-muted" style="font-size:14px;margin-bottom:20px">Tell us your name to personalize your experience</p>
+      <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" id="user-name" class="form-control" placeholder="e.g. Priya Sharma" />
+      </div>
+      <div class="form-group">
+        <label>Email (optional)</label>
+        <input type="email" id="user-email" class="form-control" placeholder="priya@gmail.com" />
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" id="save-profile-btn">Start Shopping 🛍️</button>
+      <button class="btn btn-outline btn-full" id="skip-profile-btn" style="margin-top:10px">Skip for now</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script>
+  if (auth.isLoggedIn()) window.location.href = 'index.html';
+
+  let phoneNumber = '';
+  let timerInterval;
+  const redirect = new URLSearchParams(location.search).get('redirect') || 'index.html';
+
+  // Send OTP
+  document.getElementById('send-otp-btn').addEventListener('click', async () => {
+    const phone = document.getElementById('phone-input').value.trim();
+    const errEl = document.getElementById('phone-error');
+    if (!/^\d{10}$/.test(phone)) { errEl.textContent = 'Enter a valid 10-digit mobile number'; return; }
+    errEl.textContent = '';
+    const btn = document.getElementById('send-otp-btn');
+    btn.disabled = true; btn.innerHTML = '<div class="spinner spinner-sm"></div> Sending...';
+    try {
+      await api.post('/auth/send-otp', { phone });
+      phoneNumber = phone;
+      document.getElementById('phone-display').textContent = '+91 ' + phone;
+      document.getElementById('step-phone').style.display = 'none';
+      document.getElementById('step-otp').style.display = 'block';
+      initOTPInputs('otp-box');
+      startCountdown();
+      showToast('OTP sent! 📲', 'success');
+    } catch (err) {
+      showToast(err.message, 'error');
+      btn.disabled = false; btn.textContent = 'Get OTP';
+    }
+  });
+
+  // Enter key
+  document.getElementById('phone-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('send-otp-btn').click();
+  });
+
+  // Change phone
+  document.getElementById('change-phone').addEventListener('click', () => {
+    document.getElementById('step-otp').style.display = 'none';
+    document.getElementById('step-phone').style.display = 'block';
+    clearInterval(timerInterval);
+  });
+
+  // Verify OTP
+  document.getElementById('verify-btn').addEventListener('click', async () => {
+    const otp = getOTPValue('otp-box');
+    if (otp.length < 6) { showToast('Enter all 6 digits', 'warning'); return; }
+    const btn = document.getElementById('verify-btn');
+    btn.disabled = true; btn.innerHTML = '<div class="spinner spinner-sm"></div> Verifying...';
+    try {
+      const data = await api.post('/auth/verify-otp', { phone: phoneNumber, otp });
+      auth.setToken(data.token);
+      auth.setUser(data.user);
+      clearInterval(timerInterval);
+      if (data.isNewUser) {
+        document.getElementById('step-otp').style.display = 'none';
+        document.getElementById('step-profile').style.display = 'block';
+      } else {
+        showToast('Login successful! 🎉', 'success');
+        setTimeout(() => window.location.href = redirect, 700);
+      }
+    } catch (err) {
+      showToast(err.message, 'error');
+      btn.disabled = false; btn.textContent = 'Verify & Login';
+    }
+  });
+
+  // Resend
+  document.getElementById('resend-btn').addEventListener('click', async () => {
+    try {
+      await api.post('/auth/send-otp', { phone: phoneNumber });
+      showToast('New OTP sent!', 'success');
+      document.querySelectorAll('.otp-input').forEach(i => i.value = '');
+      startCountdown();
+    } catch (err) { showToast(err.message, 'error'); }
+  });
+
+  // Save profile
+  document.getElementById('save-profile-btn').addEventListener('click', async () => {
+    const name = document.getElementById('user-name').value.trim();
+    const email = document.getElementById('user-email').value.trim();
+    if (!name) { showToast('Please enter your name', 'warning'); return; }
+    try {
+      const data = await api.put('/users/profile', { name, email });
+      auth.setUser({ ...auth.getUser(), name, email });
+      showToast('Welcome to Pretty Store! 🎉', 'success');
+      setTimeout(() => window.location.href = redirect, 700);
+    } catch (err) { showToast(err.message, 'error'); }
+  });
+
+  document.getElementById('skip-profile-btn').addEventListener('click', () => {
+    window.location.href = redirect;
+  });
+
+  function startCountdown() {
+    let s = 600; clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      s--;
+      const m = Math.floor(s / 60).toString().padStart(2, '0');
+      const sec = (s % 60).toString().padStart(2, '0');
+      const el = document.getElementById('otp-countdown');
+      if (el) el.textContent = `${m}:${sec}`;
+      if (s <= 0) clearInterval(timerInterval);
+    }, 1000);
+  }
+</script>
+</body>
+</html>

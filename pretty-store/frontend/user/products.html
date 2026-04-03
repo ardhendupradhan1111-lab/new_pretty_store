@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Explore – Pretty Store</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="user.css" />
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <a href="index.html" class="header-logo">💕 Pretty Store</a>
+    <div class="header-search">
+      <input type="text" id="search-input" placeholder="Search products..." />
+      <button id="search-btn">🔍</button>
+    </div>
+    <div class="header-actions">
+      <button class="header-btn" onclick="location.href='wishlist.html'">
+        <span class="icon">❤️</span><span>Wishlist</span>
+      </button>
+      <button class="header-btn" onclick="location.href='cart.html'" style="position:relative">
+        <span class="icon">🛒</span><span>Cart</span>
+        <span class="cart-badge cart-count" style="display:none">0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="page-container page-bottom-padding" style="margin-top:16px">
+  <div class="products-layout">
+
+    <!-- Filters Sidebar -->
+    <aside class="filters-sidebar" id="filters-sidebar">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <h3 style="margin:0">🔧 Filters</h3>
+        <button class="btn btn-sm btn-outline" id="clear-filters-btn">Clear All</button>
+      </div>
+
+      <!-- Category -->
+      <div class="filter-section">
+        <h4>Category</h4>
+        <label class="filter-check"><input type="radio" name="cat" value="" checked /> All Categories</label>
+        <label class="filter-check"><input type="radio" name="cat" value="Women" /> 👗 Women</label>
+        <label class="filter-check"><input type="radio" name="cat" value="Men" /> 👔 Men</label>
+        <label class="filter-check"><input type="radio" name="cat" value="Kids" /> 🧸 Kids</label>
+        <label class="filter-check"><input type="radio" name="cat" value="Home & Kitchen" /> 🏠 Home & Kitchen</label>
+        <label class="filter-check"><input type="radio" name="cat" value="Beauty" /> 💄 Beauty</label>
+        <label class="filter-check"><input type="radio" name="cat" value="Electronics" /> 📱 Electronics</label>
+        <label class="filter-check"><input type="radio" name="cat" value="Sports" /> ⚽ Sports</label>
+        <label class="filter-check"><input type="radio" name="cat" value="Books" /> 📚 Books</label>
+        <label class="filter-check"><input type="radio" name="cat" value="Toys" /> 🎮 Toys</label>
+        <label class="filter-check"><input type="radio" name="cat" value="Grocery" /> 🛒 Grocery</label>
+      </div>
+
+      <!-- Price Range -->
+      <div class="filter-section">
+        <h4>Price Range (₹)</h4>
+        <div class="price-range">
+          <input type="number" class="price-input" id="min-price" placeholder="Min" min="0" />
+          <input type="number" class="price-input" id="max-price" placeholder="Max" min="0" />
+        </div>
+        <button class="btn btn-primary btn-sm btn-full" id="apply-price-btn" style="margin-top:10px">Apply</button>
+      </div>
+
+      <!-- Sort -->
+      <div class="filter-section">
+        <h4>Sort By</h4>
+        <label class="filter-check"><input type="radio" name="sort" value="newest" checked /> Newest First</label>
+        <label class="filter-check"><input type="radio" name="sort" value="price-asc" /> Price: Low to High</label>
+        <label class="filter-check"><input type="radio" name="sort" value="price-desc" /> Price: High to Low</label>
+        <label class="filter-check"><input type="radio" name="sort" value="rating" /> Top Rated</label>
+        <label class="filter-check"><input type="radio" name="sort" value="popularity" /> Most Popular</label>
+      </div>
+    </aside>
+
+    <!-- Products Area -->
+    <div class="products-main">
+      <!-- Mobile filter toggle -->
+      <div style="display:flex;gap:10px;margin-bottom:14px;align-items:center">
+        <button class="btn btn-outline btn-sm" id="mobile-filter-btn" style="display:none">
+          🔧 Filters
+        </button>
+        <div class="products-toolbar" style="flex:1;margin:0">
+          <span class="count" id="products-count">Loading...</span>
+          <select class="sort-select" id="sort-mobile" style="display:none">
+            <option value="newest">Newest</option>
+            <option value="price-asc">Price ↑</option>
+            <option value="price-desc">Price ↓</option>
+            <option value="rating">Top Rated</option>
+            <option value="popularity">Popular</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid-products" id="products-grid">
+        <div class="product-card"><div class="skeleton" style="padding-top:110%"></div><div style="padding:12px"><div class="skeleton" style="height:14px;margin-bottom:6px"></div><div class="skeleton" style="height:14px;width:60%"></div></div></div>
+        <div class="product-card"><div class="skeleton" style="padding-top:110%"></div><div style="padding:12px"><div class="skeleton" style="height:14px;margin-bottom:6px"></div><div class="skeleton" style="height:14px;width:60%"></div></div></div>
+        <div class="product-card"><div class="skeleton" style="padding-top:110%"></div><div style="padding:12px"><div class="skeleton" style="height:14px;margin-bottom:6px"></div><div class="skeleton" style="height:14px;width:60%"></div></div></div>
+        <div class="product-card"><div class="skeleton" style="padding-top:110%"></div><div style="padding:12px"><div class="skeleton" style="height:14px;margin-bottom:6px"></div><div class="skeleton" style="height:14px;width:60%"></div></div></div>
+      </div>
+
+      <div id="products-pagination" class="pagination"></div>
+    </div>
+  </div>
+</main>
+
+<!-- Mobile filter overlay -->
+<div id="filter-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:499" onclick="closeMobileFilters()"></div>
+
+<nav class="bottom-nav">
+  <a href="index.html"><span class="bnav-icon">🏠</span>Home</a>
+  <a href="products.html" class="active"><span class="bnav-icon">🔍</span>Explore</a>
+  <a href="wishlist.html"><span class="bnav-icon">❤️</span>Wishlist</a>
+  <a href="cart.html" style="position:relative">
+    <span class="bnav-icon">🛒</span>Cart
+    <span class="cart-badge cart-count" style="top:0;right:20%;display:none">0</span>
+  </a>
+  <a href="profile.html"><span class="bnav-icon">👤</span>Profile</a>
+</nav>
+
+<div id="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script>
+  let currentPage = 1;
+  let wishlistIds = new Set();
+  let activeFilters = { category: '', sort: 'newest', minPrice: '', maxPrice: '', search: '' };
+
+  // Parse URL params on load
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('category')) {
+    activeFilters.category = urlParams.get('category');
+    const radio = document.querySelector(`input[name="cat"][value="${activeFilters.category}"]`);
+    if (radio) radio.checked = true;
+  }
+  if (urlParams.get('search')) {
+    activeFilters.search = urlParams.get('search');
+    document.getElementById('search-input').value = activeFilters.search;
+  }
+
+  async function init() {
+    refreshCartCount();
+    if (auth.isLoggedIn()) {
+      try {
+        const data = await api.get('/wishlist');
+        wishlistIds = new Set(data.products.map(p => p._id));
+      } catch(e) {}
+    }
+    loadProducts(1);
+    checkMobileView();
+  }
+
+  function checkMobileView() {
+    const isMobile = window.innerWidth <= 768;
+    document.getElementById('mobile-filter-btn').style.display = isMobile ? 'block' : 'none';
+    document.getElementById('sort-mobile').style.display = isMobile ? 'block' : 'none';
+  }
+  window.addEventListener('resize', checkMobileView);
+
+  async function loadProducts(page) {
+    page = page || 1;
+    currentPage = page;
+
+    const params = new URLSearchParams({ page: page, limit: 20, sort: activeFilters.sort });
+    if (activeFilters.search)   params.set('search', activeFilters.search);
+    if (activeFilters.category) params.set('category', activeFilters.category);
+    if (activeFilters.minPrice) params.set('minPrice', activeFilters.minPrice);
+    if (activeFilters.maxPrice) params.set('maxPrice', activeFilters.maxPrice);
+
+    try {
+      document.getElementById('products-count').textContent = 'Loading...';
+      const data = await api.get('/products?' + params.toString());
+      renderProducts(data.products);
+      document.getElementById('products-count').textContent = data.total + ' Products found';
+      renderPagination(data.pages, page);
+    } catch (err) {
+      showToast(err.message, 'error');
+      document.getElementById('products-count').textContent = 'Error loading products';
+    }
+  }
+
+  function renderProducts(products) {
+    const grid = document.getElementById('products-grid');
+    if (!products.length) {
+      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🔍</div><h3>No products found</h3><p>Try different filters or search terms</p><button class="btn btn-primary" onclick="clearFilters()">Clear Filters</button></div>';
+      return;
+    }
+    grid.innerHTML = products.map(function(p) {
+      var disc = getDiscount(p.originalPrice, p.price);
+      var isWished = wishlistIds.has(p._id);
+      return '<div class="product-card" onclick="location.href=\'product.html?id=' + p._id + '\'">' +
+        '<div class="product-card-img-wrap">' +
+          '<img src="' + (p.images[0] ? p.images[0].url : '') + '" alt="' + p.title + '" onerror="imgFallback(this)" loading="lazy" />' +
+          (disc ? '<span class="product-card-discount">' + disc + '% OFF</span>' : '') +
+          '<button class="product-card-wishlist ' + (isWished ? 'active' : '') + '" onclick="event.stopPropagation();toggleWishlist(\'' + p._id + '\', this)">' + (isWished ? '❤️' : '🤍') + '</button>' +
+        '</div>' +
+        '<div class="product-card-info">' +
+          '<div class="product-card-title">' + p.title + '</div>' +
+          '<div class="product-card-price">' +
+            '<span class="curr">' + formatPrice(p.price) + '</span>' +
+            (p.originalPrice ? '<span class="orig">' + formatPrice(p.originalPrice) + '</span>' : '') +
+            (disc ? '<span class="disc">' + disc + '% off</span>' : '') +
+          '</div>' +
+          (p.rating.count > 0 ? '<div class="product-card-rating">' + starsHTML(p.rating.average, p.rating.count) + '</div>' : '') +
+          '<button class="product-card-addcart" onclick="event.stopPropagation();addToCart(\'' + p._id + '\')">🛒 Add to Cart</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function renderPagination(pages, current) {
+    var el = document.getElementById('products-pagination');
+    if (pages <= 1) { el.innerHTML = ''; return; }
+    var html = '';
+    if (current > 1) html += '<button class="page-btn" onclick="loadProducts(' + (current-1) + ')">‹</button>';
+    var start = Math.max(1, current - 2);
+    var end = Math.min(pages, current + 2);
+    for (var i = start; i <= end; i++) {
+      html += '<button class="page-btn ' + (i === current ? 'active' : '') + '" onclick="loadProducts(' + i + ')">' + i + '</button>';
+    }
+    if (current < pages) html += '<button class="page-btn" onclick="loadProducts(' + (current+1) + ')">›</button>';
+    el.innerHTML = html;
+  }
+
+  // Filter listeners
+  document.querySelectorAll('input[name="cat"]').forEach(function(r) {
+    r.addEventListener('change', function() {
+      activeFilters.category = this.value;
+      loadProducts(1);
+    });
+  });
+
+  document.querySelectorAll('input[name="sort"]').forEach(function(r) {
+    r.addEventListener('change', function() {
+      activeFilters.sort = this.value;
+      loadProducts(1);
+    });
+  });
+
+  document.getElementById('sort-mobile').addEventListener('change', function() {
+    activeFilters.sort = this.value;
+    // sync sidebar radio
+    var radio = document.querySelector('input[name="sort"][value="' + this.value + '"]');
+    if (radio) radio.checked = true;
+    loadProducts(1);
+  });
+
+  document.getElementById('apply-price-btn').addEventListener('click', function() {
+    activeFilters.minPrice = document.getElementById('min-price').value;
+    activeFilters.maxPrice = document.getElementById('max-price').value;
+    loadProducts(1);
+  });
+
+  document.getElementById('clear-filters-btn').addEventListener('click', clearFilters);
+
+  function clearFilters() {
+    activeFilters = { category: '', sort: 'newest', minPrice: '', maxPrice: '', search: '' };
+    document.querySelector('input[name="cat"][value=""]').checked = true;
+    document.querySelector('input[name="sort"][value="newest"]').checked = true;
+    document.getElementById('min-price').value = '';
+    document.getElementById('max-price').value = '';
+    document.getElementById('search-input').value = '';
+    loadProducts(1);
+  }
+
+  // Search
+  var doSearch = debounce(function() {
+    activeFilters.search = document.getElementById('search-input').value.trim();
+    loadProducts(1);
+  }, 400);
+  document.getElementById('search-input').addEventListener('input', doSearch);
+  document.getElementById('search-btn').addEventListener('click', function() {
+    activeFilters.search = document.getElementById('search-input').value.trim();
+    loadProducts(1);
+  });
+
+  // Mobile filter panel
+  document.getElementById('mobile-filter-btn').addEventListener('click', function() {
+    document.getElementById('filters-sidebar').classList.add('mobile-open');
+    document.getElementById('filter-overlay').style.display = 'block';
+  });
+  function closeMobileFilters() {
+    document.getElementById('filters-sidebar').classList.remove('mobile-open');
+    document.getElementById('filter-overlay').style.display = 'none';
+  }
+
+  // Wishlist
+  async function toggleWishlist(productId, btn) {
+    if (!auth.isLoggedIn()) { window.location.href = 'login.html?redirect=products.html'; return; }
+    try {
+      var data = await api.post('/wishlist/toggle/' + productId);
+      if (data.added) { wishlistIds.add(productId); btn.innerHTML = '❤️'; btn.classList.add('active'); }
+      else { wishlistIds.delete(productId); btn.innerHTML = '🤍'; btn.classList.remove('active'); }
+      showToast(data.message, 'success');
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  // Cart
+  async function addToCart(productId) {
+    if (!auth.isLoggedIn()) { window.location.href = 'login.html?redirect=products.html'; return; }
+    try {
+      await api.post('/cart/add', { productId: productId, quantity: 1 });
+      showToast('Added to cart! 🛒', 'success');
+      refreshCartCount();
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  init();
+</script>
+</body>
+</html>

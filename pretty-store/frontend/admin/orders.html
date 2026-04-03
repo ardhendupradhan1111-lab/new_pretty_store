@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orders – Pretty Store Admin</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><span class="brand-icon">💕</span><span class="brand-text">Pretty Store</span></div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item"><span>📊</span> Dashboard</a>
+      <a href="products.html" class="nav-item"><span>📦</span> Products</a>
+      <a href="orders.html" class="nav-item active"><span>🛒</span> Orders</a>
+      <a href="users.html" class="nav-item"><span>👥</span> Users</a>
+      <a href="settings.html" class="nav-item"><span>⚙️</span> Settings</a>
+    </nav>
+    <button class="sidebar-logout" id="logout-btn">🚪 Logout</button>
+  </aside>
+  <main class="admin-main">
+    <header class="admin-header">
+      <button class="menu-toggle" id="menu-toggle">☰</button>
+      <h1 class="page-title">Orders</h1>
+    </header>
+    <div class="admin-content">
+      <div class="filter-bar">
+        <select id="status-filter">
+          <option value="">All Statuses</option>
+          <option>Placed</option><option>Confirmed</option><option>Processing</option>
+          <option>Shipped</option><option>Delivered</option><option>Cancelled</option><option>Returned</option>
+        </select>
+        <button class="btn btn-primary btn-sm" id="filter-btn">Filter</button>
+      </div>
+      <div class="card">
+        <div id="orders-container">
+          <div class="flex-center" style="padding:40px"><div class="spinner"></div></div>
+        </div>
+        <div id="orders-pagination" class="pagination"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Order Detail Modal -->
+<div class="modal-overlay" id="order-modal">
+  <div class="modal" style="width:min(95vw,680px)">
+    <div class="modal-header">
+      <h3>Order Details</h3>
+      <button class="modal-close" id="close-order-modal">✕</button>
+    </div>
+    <div class="modal-body" id="order-detail-body"></div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script src="admin.js"></script>
+<script>
+  requireAdminAuth();
+
+  let currentPage = 1;
+  const ordersCache = {}; // store fetched orders by _id for detail view
+
+  async function loadOrders(page) {
+    page = page || 1;
+    currentPage = page;
+    const status = document.getElementById('status-filter').value;
+    const params = new URLSearchParams({ page: page, limit: 20 });
+    if (status) params.set('status', status);
+
+    document.getElementById('orders-container').innerHTML =
+      '<div class="flex-center" style="padding:40px"><div class="spinner"></div></div>';
+
+    try {
+      const data = await adminApi.get('/orders?' + params.toString());
+      data.orders.forEach(function(o) { ordersCache[o._id] = o; });
+      renderOrders(data.orders);
+      renderPagination(data.pages, page);
+    } catch (err) {
+      showToast(err.message, 'error');
+      document.getElementById('orders-container').innerHTML =
+        '<div class="empty-state"><div class="empty-icon">⚠️</div><h3>Failed to load orders</h3></div>';
+    }
+  }
+
+  function renderOrders(orders) {
+    if (!orders.length) {
+      document.getElementById('orders-container').innerHTML =
+        '<div class="empty-state"><div class="empty-icon">🛒</div><h3>No orders found</h3></div>';
+      return;
+    }
+
+    var rows = orders.map(function(o) {
+      return '<tr>' +
+        '<td><span class="font-bold text-pink">' + o.orderNumber + '</span></td>' +
+        '<td><span class="font-bold">' + (o.user && o.user.name ? o.user.name : '—') + '</span><br>' +
+          '<span class="text-muted" style="font-size:12px">' + (o.user && o.user.phone ? o.user.phone : '') + '</span></td>' +
+        '<td>' + o.items.length + ' item' + (o.items.length > 1 ? 's' : '') + '</td>' +
+        '<td class="font-bold">' + formatPrice(o.total) + '</td>' +
+        '<td><span class="badge badge-purple">' + o.paymentMethod + '</span><br>' +
+          '<span style="margin-top:3px;display:block">' + paymentStatusBadge(o.paymentStatus) + '</span></td>' +
+        '<td>' + orderStatusBadge(o.orderStatus) + '</td>' +
+        '<td style="font-size:12px">' + formatDate(o.createdAt) + '</td>' +
+        '<td><button class="action-btn view" onclick="viewOrder(\'' + o._id + '\')">👁 View</button></td>' +
+        '</tr>';
+    }).join('');
+
+    document.getElementById('orders-container').innerHTML =
+      '<div class="table-wrap">' +
+        '<table class="admin-table">' +
+          '<thead><tr>' +
+            '<th>Order #</th><th>Customer</th><th>Items</th>' +
+            '<th>Total</th><th>Payment</th><th>Status</th><th>Date</th><th>Action</th>' +
+          '</tr></thead>' +
+          '<tbody>' + rows + '</tbody>' +
+        '</table>' +
+      '</div>';
+  }
+
+  function renderPagination(pages, current) {
+    var el = document.getElementById('orders-pagination');
+    if (pages <= 1) { el.innerHTML = ''; return; }
+    var html = '';
+    for (var i = 1; i <= pages; i++) {
+      html += '<button class="page-btn ' + (i === current ? 'active' : '') + '" onclick="loadOrders(' + i + ')">' + i + '</button>';
+    }
+    el.innerHTML = html;
+  }
+
+  function viewOrder(id) {
+    document.getElementById('order-modal').classList.add('active');
+    var o = ordersCache[id];
+    if (!o) {
+      document.getElementById('order-detail-body').innerHTML =
+        '<p class="text-error" style="padding:20px">Order not found. Please reload the page.</p>';
+      return;
+    }
+    renderOrderDetail(o);
+  }
+
+  function renderOrderDetail(o) {
+    var itemsHtml = o.items.map(function(item) {
+      return '<div style="display:flex;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">' +
+        '<img src="' + item.image + '" style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid var(--border)" onerror="imgFallback(this)" />' +
+        '<div style="flex:1">' +
+          '<p class="font-bold" style="font-size:14px">' + item.title + '</p>' +
+          '<p class="text-muted" style="font-size:12px">' + (item.size ? 'Size: ' + item.size : '') + (item.color ? ' · ' + item.color : '') + '</p>' +
+        '</div>' +
+        '<div style="text-align:right">' +
+          '<p class="font-bold">' + formatPrice(item.price) + '</p>' +
+          '<p class="text-muted" style="font-size:12px">Qty: ' + item.quantity + '</p>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    var historyHtml = '';
+    if (o.statusHistory && o.statusHistory.length) {
+      historyHtml = '<div style="margin-top:16px">' +
+        '<p class="font-bold" style="margin-bottom:8px">📋 Status History</p>' +
+        o.statusHistory.map(function(h) {
+          return '<div style="display:flex;gap:10px;align-items:center;font-size:13px;padding:5px 0;border-bottom:1px dashed var(--border)">' +
+            orderStatusBadge(h.status) +
+            '<span class="text-muted">' + formatDateTime(h.timestamp) + '</span>' +
+            (h.note ? '<span>' + h.note + '</span>' : '') +
+          '</div>';
+        }).join('') +
+      '</div>';
+    }
+
+    var statusOptions = ['Placed','Confirmed','Processing','Shipped','Delivered','Cancelled','Returned'].map(function(s) {
+      return '<option value="' + s + '"' + (s === o.orderStatus ? ' selected' : '') + '>' + s + '</option>';
+    }).join('');
+
+    document.getElementById('order-detail-body').innerHTML =
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px;font-size:14px">' +
+        '<div><p class="text-muted" style="font-size:11px;font-weight:700;text-transform:uppercase">Order #</p><p class="font-bold text-pink">' + o.orderNumber + '</p></div>' +
+        '<div><p class="text-muted" style="font-size:11px;font-weight:700;text-transform:uppercase">Date</p><p>' + formatDateTime(o.createdAt) + '</p></div>' +
+        '<div><p class="text-muted" style="font-size:11px;font-weight:700;text-transform:uppercase">Payment</p><p>' + o.paymentMethod + ' — ' + paymentStatusBadge(o.paymentStatus) + '</p></div>' +
+      '</div>' +
+
+      '<div style="background:var(--bg);border-radius:var(--radius);padding:14px;margin-bottom:16px">' +
+        '<p class="font-bold" style="margin-bottom:6px">📍 Shipping Address</p>' +
+        '<p style="font-size:14px">' + o.shippingAddress.name + ' · ' + o.shippingAddress.phone + '</p>' +
+        '<p class="text-muted" style="font-size:13px">' + o.shippingAddress.street + ', ' + o.shippingAddress.city + ', ' + o.shippingAddress.state + ' – ' + o.shippingAddress.pincode + '</p>' +
+      '</div>' +
+
+      '<div style="margin-bottom:16px">' +
+        '<p class="font-bold" style="margin-bottom:10px">🛍️ Items (' + o.items.length + ')</p>' +
+        itemsHtml +
+      '</div>' +
+
+      '<div style="background:var(--gradient-soft);border-radius:var(--radius);padding:14px;margin-bottom:20px">' +
+        '<div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px"><span>Subtotal</span><span>' + formatPrice(o.subtotal) + '</span></div>' +
+        '<div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px"><span>Shipping</span><span>' + (o.shippingCharge === 0 ? '<span style="color:var(--success)">FREE</span>' : formatPrice(o.shippingCharge)) + '</span></div>' +
+        '<div style="display:flex;justify-content:space-between;font-weight:800;font-size:16px;border-top:1px solid var(--border);padding-top:8px"><span>Total</span><span>' + formatPrice(o.total) + '</span></div>' +
+      '</div>' +
+
+      '<div style="margin-bottom:16px">' +
+        '<p class="font-bold" style="margin-bottom:10px">📦 Update Status</p>' +
+        '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">' +
+          '<select id="new-status" class="form-control" style="max-width:200px">' + statusOptions + '</select>' +
+          '<input type="text" id="status-note" class="form-control" placeholder="Optional note..." style="max-width:220px" />' +
+          '<button class="btn btn-primary" onclick="updateOrderStatus(\'' + o._id + '\')">Update</button>' +
+        '</div>' +
+      '</div>' +
+
+      historyHtml;
+  }
+
+  async function updateOrderStatus(orderId) {
+    var status = document.getElementById('new-status').value;
+    var note   = document.getElementById('status-note').value;
+    try {
+      await adminApi.put('/orders/' + orderId + '/status', { status: status, note: note });
+      showToast('Order status updated!', 'success');
+      if (ordersCache[orderId]) {
+        ordersCache[orderId].orderStatus = status;
+        if (!ordersCache[orderId].statusHistory) ordersCache[orderId].statusHistory = [];
+        ordersCache[orderId].statusHistory.push({ status: status, note: note, timestamp: new Date().toISOString() });
+      }
+      document.getElementById('order-modal').classList.remove('active');
+      loadOrders(currentPage);
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  document.getElementById('close-order-modal').addEventListener('click', function() {
+    document.getElementById('order-modal').classList.remove('active');
+  });
+  document.getElementById('order-modal').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('active');
+  });
+  document.getElementById('filter-btn').addEventListener('click', function() { loadOrders(1); });
+  document.getElementById('status-filter').addEventListener('change', function() { loadOrders(1); });
+
+  loadOrders(1);
+</script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wishlist – Pretty Store</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="user.css" />
+</head>
+<body>
+<header class="header">
+  <div class="header-inner">
+    <a href="index.html" class="header-logo">💕 Pretty Store</a>
+    <div style="flex:1;font-family:var(--font-heading);font-size:18px;font-weight:700">My Wishlist</div>
+    <button class="header-btn" onclick="location.href='cart.html'" style="position:relative">
+      <span class="icon">🛒</span>
+      <span class="cart-badge cart-count" style="display:none">0</span>
+    </button>
+  </div>
+</header>
+
+<main class="page-container page-bottom-padding" style="margin-top:16px">
+  <div id="wishlist-loading" class="flex-center" style="padding:60px"><div class="spinner"></div></div>
+  <div id="wishlist-empty" class="empty-state" style="display:none">
+    <div class="empty-icon">❤️</div>
+    <h3>Your wishlist is empty</h3>
+    <p>Save items you love to your wishlist</p>
+    <a href="index.html" class="btn btn-primary btn-lg" style="margin-top:8px">Explore Products</a>
+  </div>
+  <div id="wishlist-count" style="font-size:14px;color:var(--text-muted);font-weight:600;margin-bottom:16px"></div>
+  <div class="grid-products" id="wishlist-grid"></div>
+</main>
+
+<nav class="bottom-nav">
+  <a href="index.html"><span class="bnav-icon">🏠</span>Home</a>
+  <a href="wishlist.html" class="active"><span class="bnav-icon">❤️</span>Wishlist</a>
+  <a href="cart.html" style="position:relative"><span class="bnav-icon">🛒</span>Cart
+    <span class="cart-badge cart-count" style="top:0;right:20%;display:none">0</span>
+  </a>
+  <a href="orders.html"><span class="bnav-icon">📦</span>Orders</a>
+  <a href="profile.html"><span class="bnav-icon">👤</span>Profile</a>
+</nav>
+
+<div id="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script>
+  if (!auth.isLoggedIn()) window.location.href = 'login.html?redirect=wishlist.html';
+
+  async function loadWishlist() {
+    try {
+      const data = await api.get('/wishlist');
+      document.getElementById('wishlist-loading').style.display = 'none';
+      if (!data.products.length) {
+        document.getElementById('wishlist-empty').style.display = 'flex';
+        return;
+      }
+      document.getElementById('wishlist-count').textContent = `${data.products.length} item${data.products.length > 1 ? 's' : ''} in wishlist`;
+      renderWishlist(data.products);
+      refreshCartCount();
+    } catch (err) {
+      document.getElementById('wishlist-loading').style.display = 'none';
+      showToast(err.message, 'error');
+    }
+  }
+
+  function renderWishlist(products) {
+    document.getElementById('wishlist-grid').innerHTML = products.map(p => {
+      const disc = getDiscount(p.originalPrice, p.price);
+      return `
+        <div class="product-card">
+          <div class="product-card-img-wrap" onclick="location.href='product.html?id=${p._id}'" style="cursor:pointer">
+            <img src="${p.images[0]?.url||''}" alt="${p.title}" onerror="imgFallback(this)" loading="lazy" />
+            ${disc ? `<span class="product-card-discount">${disc}% OFF</span>` : ''}
+            <button class="product-card-wishlist active" onclick="event.stopPropagation();removeFromWishlist('${p._id}', this)">❤️</button>
+          </div>
+          <div class="product-card-info">
+            <div class="product-card-title" onclick="location.href='product.html?id=${p._id}'" style="cursor:pointer">${p.title}</div>
+            <div class="product-card-price">
+              <span class="curr">${formatPrice(p.price)}</span>
+              ${p.originalPrice ? `<span class="orig">${formatPrice(p.originalPrice)}</span>` : ''}
+              ${disc ? `<span class="disc">${disc}% off</span>` : ''}
+            </div>
+            <button class="product-card-addcart" onclick="addToCart('${p._id}')">🛒 Add to Cart</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  async function removeFromWishlist(productId, btn) {
+    try {
+      await api.post(`/wishlist/toggle/${productId}`);
+      showToast('Removed from wishlist', 'info');
+      loadWishlist();
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  async function addToCart(productId) {
+    try {
+      await api.post('/cart/add', { productId, quantity: 1 });
+      showToast('Added to cart! 🛒', 'success');
+      refreshCartCount();
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  loadWishlist();
+</script>
+</body>
+</html>

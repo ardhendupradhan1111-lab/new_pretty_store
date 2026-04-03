@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Orders – Pretty Store</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="user.css" />
+</head>
+<body>
+<header class="header">
+  <div class="header-inner">
+    <a href="index.html" class="header-logo">💕 Pretty Store</a>
+    <div style="flex:1;font-family:var(--font-heading);font-size:18px;font-weight:700">My Orders</div>
+    <button class="header-btn" onclick="location.href='cart.html'" style="position:relative">
+      <span class="icon">🛒</span>
+      <span class="cart-badge cart-count" style="display:none">0</span>
+    </button>
+  </div>
+</header>
+
+<main class="page-container page-bottom-padding" style="margin-top:16px">
+  <div id="orders-loading" class="flex-center" style="padding:60px"><div class="spinner"></div></div>
+
+  <div id="orders-empty" class="empty-state" style="display:none">
+    <div class="empty-icon">📦</div>
+    <h3>No orders yet</h3>
+    <p>Start shopping to place your first order!</p>
+    <a href="index.html" class="btn btn-primary btn-lg" style="margin-top:8px">Shop Now</a>
+  </div>
+
+  <div id="orders-list"></div>
+  <div id="orders-pagination" class="pagination"></div>
+</main>
+
+<!-- Order Detail Modal -->
+<div class="modal-overlay" id="order-modal">
+  <div class="modal" style="width:min(95vw,600px)">
+    <div class="modal-header">
+      <h3>Order Details</h3>
+      <button class="modal-close" onclick="document.getElementById('order-modal').classList.remove('active')">✕</button>
+    </div>
+    <div class="modal-body" id="order-modal-body"></div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <a href="index.html"><span class="bnav-icon">🏠</span>Home</a>
+  <a href="wishlist.html"><span class="bnav-icon">❤️</span>Wishlist</a>
+  <a href="cart.html" style="position:relative"><span class="bnav-icon">🛒</span>Cart
+    <span class="cart-badge cart-count" style="top:0;right:20%;display:none">0</span>
+  </a>
+  <a href="orders.html" class="active"><span class="bnav-icon">📦</span>Orders</a>
+  <a href="profile.html"><span class="bnav-icon">👤</span>Profile</a>
+</nav>
+
+<div id="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script>
+  if (!auth.isLoggedIn()) window.location.href = 'login.html?redirect=orders.html';
+
+  let currentPage = 1;
+
+  async function loadOrders(page = 1) {
+    currentPage = page;
+    try {
+      const data = await api.get(`/orders/my-orders?page=${page}`);
+      document.getElementById('orders-loading').style.display = 'none';
+      if (!data.orders.length && page === 1) {
+        document.getElementById('orders-empty').style.display = 'flex';
+        return;
+      }
+      renderOrders(data.orders);
+      renderPagination(data.pages, page);
+    } catch (err) {
+      document.getElementById('orders-loading').style.display = 'none';
+      showToast(err.message, 'error');
+    }
+  }
+
+  function renderOrders(orders) {
+    document.getElementById('orders-list').innerHTML = orders.map(o => `
+      <div class="order-card" onclick="viewOrder('${o._id}')">
+        <div class="order-card-header">
+          <div>
+            <span class="font-bold text-pink" style="font-size:14px">#${o.orderNumber}</span>
+            <p class="text-muted" style="font-size:12px;margin-top:2px">${formatDateTime(o.createdAt)}</p>
+          </div>
+          <div style="text-align:right">
+            ${orderStatusBadge(o.orderStatus)}
+            <p class="font-bold" style="margin-top:4px;font-size:16px">${formatPrice(o.total)}</p>
+          </div>
+        </div>
+
+        <div class="order-items-list">
+          ${o.items.map(item => `
+            <div style="flex-shrink:0">
+              <img class="order-item-img" src="${item.image}" alt="${item.title}" onerror="imgFallback(this)" />
+            </div>`).join('')}
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+          <span style="font-size:13px;color:var(--text-muted)">${o.items.length} item${o.items.length>1?'s':''} · ${o.paymentMethod} · ${paymentStatusBadge(o.paymentStatus)}</span>
+          <button class="btn btn-outline btn-sm">View Details →</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function renderPagination(pages, current) {
+    const el = document.getElementById('orders-pagination');
+    if (pages <= 1) { el.innerHTML = ''; return; }
+    let html = '';
+    for (let i = 1; i <= pages; i++) html += `<button class="page-btn ${i===current?'active':''}" onclick="loadOrders(${i})">${i}</button>`;
+    el.innerHTML = html;
+  }
+
+  async function viewOrder(id) {
+    document.getElementById('order-modal').classList.add('active');
+    document.getElementById('order-modal-body').innerHTML = '<div class="flex-center" style="padding:30px"><div class="spinner"></div></div>';
+    try {
+      const data = await api.get(`/orders/${id}`);
+      const o = data.order;
+      document.getElementById('order-modal-body').innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;font-size:14px">
+          <div><p class="text-muted" style="font-size:11px;font-weight:700;text-transform:uppercase">Order #</p><p class="font-bold text-pink">${o.orderNumber}</p></div>
+          <div><p class="text-muted" style="font-size:11px;font-weight:700;text-transform:uppercase">Date</p><p>${formatDate(o.createdAt)}</p></div>
+          <div><p class="text-muted" style="font-size:11px;font-weight:700;text-transform:uppercase">Status</p><p>${orderStatusBadge(o.orderStatus)}</p></div>
+          <div><p class="text-muted" style="font-size:11px;font-weight:700;text-transform:uppercase">Payment</p><p>${o.paymentMethod} · ${paymentStatusBadge(o.paymentStatus)}</p></div>
+        </div>
+
+        <div style="background:var(--bg);border-radius:var(--radius);padding:12px;margin-bottom:16px;font-size:13px">
+          <p class="font-bold" style="margin-bottom:6px">📍 Delivery Address</p>
+          <p>${o.shippingAddress.name} · ${o.shippingAddress.phone}</p>
+          <p class="text-muted">${o.shippingAddress.street}, ${o.shippingAddress.city}, ${o.shippingAddress.state} – ${o.shippingAddress.pincode}</p>
+        </div>
+
+        <div style="margin-bottom:16px">
+          <p class="font-bold" style="margin-bottom:10px">🛍️ Items</p>
+          ${o.items.map(item => `
+            <div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+              <img src="${item.image}" style="width:52px;height:52px;object-fit:cover;border-radius:6px;border:1px solid var(--border)" onerror="imgFallback(this)" />
+              <div style="flex:1;font-size:13px">
+                <p class="font-bold">${item.title}</p>
+                <p class="text-muted">${item.size?'Size: '+item.size:''} ${item.color?'· '+item.color:''} · Qty: ${item.quantity}</p>
+              </div>
+              <p class="font-bold" style="font-size:14px">${formatPrice(item.price * item.quantity)}</p>
+            </div>`).join('')}
+        </div>
+
+        <div style="background:var(--gradient-soft);border-radius:var(--radius);padding:12px;font-size:14px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>Subtotal</span><span>${formatPrice(o.subtotal)}</span></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>Shipping</span><span>${o.shippingCharge===0?'<span style="color:var(--success)">FREE</span>':formatPrice(o.shippingCharge)}</span></div>
+          <div style="display:flex;justify-content:space-between;font-weight:800;font-size:16px;border-top:1px solid var(--border);padding-top:8px"><span>Total</span><span>${formatPrice(o.total)}</span></div>
+        </div>
+
+        ${o.statusHistory?.length ? `
+          <div style="margin-top:16px">
+            <p class="font-bold" style="margin-bottom:10px;font-size:14px">📋 Timeline</p>
+            ${o.statusHistory.map(h => `
+              <div style="display:flex;gap:10px;align-items:center;padding:6px 0;font-size:13px;border-bottom:1px dashed var(--border)">
+                ${orderStatusBadge(h.status)}
+                <span class="text-muted">${formatDateTime(h.timestamp)}</span>
+                ${h.note ? `<span>${h.note}</span>` : ''}
+              </div>`).join('')}
+          </div>` : ''}
+      `;
+    } catch (err) {
+      document.getElementById('order-modal-body').innerHTML = `<p class="text-error">${err.message}</p>`;
+    }
+  }
+
+  refreshCartCount();
+  loadOrders();
+</script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard – Pretty Store Admin</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+<div class="admin-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-icon">💕</span>
+      <span class="brand-text">Pretty Store</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item active"><span>📊</span> Dashboard</a>
+      <a href="products.html" class="nav-item"><span>📦</span> Products</a>
+      <a href="orders.html" class="nav-item"><span>🛒</span> Orders</a>
+      <a href="users.html" class="nav-item"><span>👥</span> Users</a>
+      <a href="settings.html" class="nav-item"><span>⚙️</span> Settings</a>
+    </nav>
+    <button class="sidebar-logout" id="logout-btn">🚪 Logout</button>
+  </aside>
+
+  <!-- Main -->
+  <main class="admin-main">
+    <header class="admin-header">
+      <button class="menu-toggle" id="menu-toggle">☰</button>
+      <h1 class="page-title">Dashboard</h1>
+      <div class="header-admin">
+        <span id="admin-name">Admin</span>
+        <div class="avatar">A</div>
+      </div>
+    </header>
+
+    <div class="admin-content" id="dashboard-content">
+      <!-- Stats -->
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card skeleton" style="height:110px"></div>
+        <div class="stat-card skeleton" style="height:110px"></div>
+        <div class="stat-card skeleton" style="height:110px"></div>
+        <div class="stat-card skeleton" style="height:110px"></div>
+      </div>
+
+      <!-- Recent Orders -->
+      <div class="card" style="margin-top:24px;">
+        <div class="card-header flex-between">
+          <h3>Recent Orders</h3>
+          <a href="orders.html" class="btn btn-outline btn-sm">View All</a>
+        </div>
+        <div id="recent-orders-table"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script src="admin.js"></script>
+<script>
+  requireAdminAuth();
+
+  async function loadDashboard() {
+    try {
+      const data = await adminApi.get('/admin/dashboard');
+      const { totalProducts, totalOrders, totalUsers, totalRevenue, recentOrders, orderStats } = data.data;
+
+      document.getElementById('stats-grid').innerHTML = `
+        <div class="stat-card">
+          <div class="stat-icon" style="background:linear-gradient(135deg,#fce4ec,#f8bbd0)">📦</div>
+          <div>
+            <div class="stat-value">${totalProducts}</div>
+            <div class="stat-label">Total Products</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9)">🛒</div>
+          <div>
+            <div class="stat-value">${totalOrders}</div>
+            <div class="stat-label">Total Orders</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:linear-gradient(135deg,#e3f2fd,#bbdefb)">👥</div>
+          <div>
+            <div class="stat-value">${totalUsers}</div>
+            <div class="stat-label">Registered Users</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:linear-gradient(135deg,#f3e5f5,#e1bee7)">💰</div>
+          <div>
+            <div class="stat-value">${formatPrice(totalRevenue)}</div>
+            <div class="stat-label">Total Revenue</div>
+          </div>
+        </div>
+      `;
+
+      if (!recentOrders.length) {
+        document.getElementById('recent-orders-table').innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><h3>No orders yet</h3></div>';
+        return;
+      }
+
+      document.getElementById('recent-orders-table').innerHTML = `
+        <div class="table-wrap">
+          <table class="admin-table">
+            <thead><tr>
+              <th>Order #</th><th>Customer</th><th>Total</th><th>Payment</th><th>Status</th><th>Date</th>
+            </tr></thead>
+            <tbody>
+              ${recentOrders.map(o => `
+                <tr>
+                  <td><a href="orders.html?id=${o._id}" class="text-pink font-bold">${o.orderNumber}</a></td>
+                  <td>${o.user?.name || o.user?.phone || 'N/A'}</td>
+                  <td class="font-bold">${formatPrice(o.total)}</td>
+                  <td><span class="badge badge-purple">${o.paymentMethod}</span></td>
+                  <td>${orderStatusBadge(o.orderStatus)}</td>
+                  <td>${formatDate(o.createdAt)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  loadDashboard();
+  const admin = adminAuth.getAdmin();
+  if (admin) document.getElementById('admin-name').textContent = admin.name || admin.email;
+</script>
+</body>
+</html>

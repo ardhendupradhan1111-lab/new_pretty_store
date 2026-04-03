@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Product – Pretty Store</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="user.css" />
+</head>
+<body>
+<header class="header">
+  <div class="header-inner">
+    <a href="index.html" class="header-logo">💕 Pretty Store</a>
+    <div style="flex:1"></div>
+    <div class="header-actions">
+      <button class="header-btn" onclick="location.href='wishlist.html'"><span class="icon">❤️</span><span>Wishlist</span></button>
+      <button class="header-btn" onclick="location.href='cart.html'" style="position:relative">
+        <span class="icon">🛒</span><span>Cart</span>
+        <span class="cart-badge cart-count" style="display:none">0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="page-container page-bottom-padding" style="margin-top:16px">
+  <!-- Breadcrumb -->
+  <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
+    <a href="index.html" style="color:var(--pink)">Home</a> › <span id="breadcrumb-cat"></span> › <span id="breadcrumb-title" style="color:var(--text)"></span>
+  </div>
+
+  <!-- Loading skeleton -->
+  <div id="skeleton-wrap" class="product-detail">
+    <div class="skeleton" style="width:100%;aspect-ratio:1;border-radius:var(--radius-lg)"></div>
+    <div>
+      <div class="skeleton" style="height:28px;margin-bottom:10px;border-radius:4px"></div>
+      <div class="skeleton" style="height:20px;width:60%;margin-bottom:20px;border-radius:4px"></div>
+      <div class="skeleton" style="height:40px;width:50%;margin-bottom:16px;border-radius:4px"></div>
+      <div class="skeleton" style="height:120px;margin-bottom:16px;border-radius:8px"></div>
+      <div class="skeleton" style="height:50px;border-radius:8px"></div>
+    </div>
+  </div>
+
+  <!-- Actual Content -->
+  <div id="product-content" style="display:none">
+    <div class="product-detail">
+      <!-- Images -->
+      <div class="product-images">
+        <img id="main-img" class="main-img" src="" alt="" onerror="imgFallback(this)" />
+        <div class="product-thumbs" id="product-thumbs"></div>
+      </div>
+
+      <!-- Info -->
+      <div class="product-info">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+          <h1 id="product-title"></h1>
+          <button id="wishlist-btn" class="btn-wishlist" style="flex-shrink:0">🤍 Wishlist</button>
+        </div>
+        <div id="product-rating" style="margin:8px 0"></div>
+        <div class="product-price-row">
+          <span class="price-big" id="product-price"></span>
+          <span class="price-orig" id="product-orig-price"></span>
+          <span class="price-disc" id="product-discount"></span>
+        </div>
+        <p id="product-desc" style="font-size:14px;color:var(--text-muted);line-height:1.7;margin-bottom:16px"></p>
+
+        <!-- Sizes -->
+        <div id="size-section" style="display:none;margin-bottom:16px">
+          <p style="font-size:13px;font-weight:800;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">Size</p>
+          <div class="size-btns" id="size-btns"></div>
+        </div>
+
+        <!-- Colors -->
+        <div id="color-section" style="display:none;margin-bottom:16px">
+          <p style="font-size:13px;font-weight:800;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">Color</p>
+          <div class="color-btns" id="color-btns"></div>
+        </div>
+
+        <!-- Quantity -->
+        <div style="margin-bottom:20px">
+          <p style="font-size:13px;font-weight:800;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">Quantity</p>
+          <div class="qty-control">
+            <button class="qty-btn" id="qty-minus">−</button>
+            <input type="number" class="qty-val" id="qty-val" value="1" min="1" readonly />
+            <button class="qty-btn" id="qty-plus">+</button>
+          </div>
+          <span id="stock-info" style="font-size:12px;margin-left:10px"></span>
+        </div>
+
+        <!-- Actions -->
+        <div class="product-action-btns">
+          <button class="btn btn-primary btn-lg" id="add-cart-btn" style="flex:1">🛒 Add to Cart</button>
+          <button class="btn btn-primary btn-lg" id="buy-now-btn" style="flex:1;background:var(--gradient-soft);color:var(--pink);box-shadow:none;border:2px solid var(--pink)">⚡ Buy Now</button>
+        </div>
+
+        <!-- Delivery Info -->
+        <div style="margin-top:20px;padding:16px;background:var(--bg);border-radius:var(--radius)">
+          <p style="font-weight:700;font-size:14px;margin-bottom:10px">📦 Delivery Details</p>
+          <div style="display:flex;gap:20px;flex-wrap:wrap">
+            <span style="font-size:13px;color:var(--text-muted)">🚚 Free delivery above ₹499</span>
+            <span style="font-size:13px;color:var(--text-muted)">🔄 7-day returns</span>
+            <span style="font-size:13px;color:var(--text-muted)">🔒 Secure checkout</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<nav class="bottom-nav">
+  <a href="index.html"><span class="bnav-icon">🏠</span>Home</a>
+  <a href="wishlist.html"><span class="bnav-icon">❤️</span>Wishlist</a>
+  <a href="cart.html" style="position:relative">
+    <span class="bnav-icon">🛒</span>Cart
+    <span class="cart-badge cart-count" style="top:0;right:20%;display:none">0</span>
+  </a>
+  <a href="profile.html"><span class="bnav-icon">👤</span>Profile</a>
+</nav>
+
+<div id="toast-container"></div>
+<script src="../assets/js/utils.js"></script>
+<script>
+  const productId = new URLSearchParams(location.search).get('id');
+  if (!productId) window.location.href = 'index.html';
+
+  let product = null;
+  let selectedSize = '';
+  let selectedColor = '';
+  let qty = 1;
+  let isWished = false;
+
+  async function loadProduct() {
+    try {
+      const data = await api.get(`/products/${productId}`);
+      product = data.product;
+      renderProduct(product);
+      document.getElementById('skeleton-wrap').style.display = 'none';
+      document.getElementById('product-content').style.display = 'block';
+      refreshCartCount();
+      if (auth.isLoggedIn()) checkWishlist();
+    } catch (err) {
+      showToast('Product not found', 'error');
+      setTimeout(() => location.href = 'index.html', 1500);
+    }
+  }
+
+  function renderProduct(p) {
+    document.title = `${p.title} – Pretty Store`;
+    document.getElementById('breadcrumb-cat').innerHTML = `<a href="index.html" style="color:var(--pink)">${p.category}</a>`;
+    document.getElementById('breadcrumb-title').textContent = p.title.substring(0, 40) + (p.title.length > 40 ? '...' : '');
+
+    document.getElementById('main-img').src = p.images[0]?.url || '';
+    document.getElementById('main-img').alt = p.title;
+
+    if (p.images.length > 1) {
+      document.getElementById('product-thumbs').innerHTML = p.images.map((img, i) => `
+        <button class="product-thumb-btn ${i===0?'active':''}" onclick="selectImage('${img.url}', this)">
+          <img src="${img.url}" alt="" onerror="imgFallback(this)" />
+        </button>`).join('');
+    }
+
+    document.getElementById('product-title').textContent = p.title;
+    if (p.rating.count > 0) {
+      document.getElementById('product-rating').innerHTML = starsHTML(p.rating.average, p.rating.count);
+    }
+    document.getElementById('product-price').textContent = formatPrice(p.price);
+    if (p.originalPrice) {
+      document.getElementById('product-orig-price').textContent = formatPrice(p.originalPrice);
+      const disc = getDiscount(p.originalPrice, p.price);
+      if (disc > 0) document.getElementById('product-discount').textContent = `${disc}% off`;
+    }
+    document.getElementById('product-desc').textContent = p.description;
+
+    const stockEl = document.getElementById('stock-info');
+    if (p.stock === 0) {
+      stockEl.innerHTML = '<span style="color:var(--error);font-weight:700">Out of stock</span>';
+      document.getElementById('add-cart-btn').disabled = true;
+      document.getElementById('buy-now-btn').disabled = true;
+    } else if (p.stock < 10) {
+      stockEl.innerHTML = `<span style="color:var(--warning);font-weight:700">Only ${p.stock} left!</span>`;
+    } else {
+      stockEl.innerHTML = `<span style="color:var(--success);font-weight:700">In Stock</span>`;
+    }
+
+    if (p.sizes?.length) {
+      document.getElementById('size-section').style.display = 'block';
+      document.getElementById('size-btns').innerHTML = p.sizes.map(s => `
+        <button class="size-btn" onclick="selectSize('${s}', this)">${s}</button>`).join('');
+    }
+    if (p.colors?.length) {
+      document.getElementById('color-section').style.display = 'block';
+      document.getElementById('color-btns').innerHTML = p.colors.map(c => `
+        <button class="color-btn" title="${c}" style="background:${c}" onclick="selectColor('${c}', this)"></button>`).join('');
+    }
+  }
+
+  function selectImage(url, btn) {
+    document.getElementById('main-img').src = url;
+    document.querySelectorAll('.product-thumb-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  function selectSize(size, btn) {
+    selectedSize = size;
+    document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  function selectColor(color, btn) {
+    selectedColor = color;
+    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  // Qty controls
+  document.getElementById('qty-minus').addEventListener('click', () => {
+    if (qty > 1) { qty--; document.getElementById('qty-val').value = qty; }
+  });
+  document.getElementById('qty-plus').addEventListener('click', () => {
+    if (qty < (product?.stock || 10)) { qty++; document.getElementById('qty-val').value = qty; }
+  });
+
+  async function checkWishlist() {
+    try {
+      const data = await api.get('/wishlist');
+      isWished = data.products.some(p => p._id === productId);
+      updateWishlistBtn();
+    } catch {}
+  }
+
+  function updateWishlistBtn() {
+    const btn = document.getElementById('wishlist-btn');
+    btn.innerHTML = isWished ? '❤️ Wishlisted' : '🤍 Wishlist';
+    btn.style.background = isWished ? 'var(--pink-light)' : '';
+  }
+
+  document.getElementById('wishlist-btn').addEventListener('click', async () => {
+    if (!auth.isLoggedIn()) { location.href = `login.html?redirect=product.html?id=${productId}`; return; }
+    try {
+      const data = await api.post(`/wishlist/toggle/${productId}`);
+      isWished = data.added;
+      updateWishlistBtn();
+      showToast(data.message, 'success');
+    } catch (err) { showToast(err.message, 'error'); }
+  });
+
+  document.getElementById('add-cart-btn').addEventListener('click', async () => {
+    if (!auth.isLoggedIn()) { location.href = `login.html?redirect=product.html?id=${productId}`; return; }
+    const btn = document.getElementById('add-cart-btn');
+    btn.disabled = true; btn.innerHTML = '<div class="spinner spinner-sm"></div>';
+    try {
+      await api.post('/cart/add', { productId, quantity: qty, size: selectedSize, color: selectedColor });
+      showToast('Added to cart! 🛒', 'success');
+      refreshCartCount();
+    } catch (err) { showToast(err.message, 'error'); }
+    finally { btn.disabled = false; btn.textContent = '🛒 Add to Cart'; }
+  });
+
+  document.getElementById('buy-now-btn').addEventListener('click', async () => {
+    if (!auth.isLoggedIn()) { location.href = `login.html?redirect=product.html?id=${productId}`; return; }
+    try {
+      await api.post('/cart/add', { productId, quantity: qty, size: selectedSize, color: selectedColor });
+      location.href = 'checkout.html';
+    } catch (err) { showToast(err.message, 'error'); }
+  });
+
+  loadProduct();
+</script>
+</body>
+</html>
